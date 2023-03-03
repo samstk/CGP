@@ -1,0 +1,6 @@
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\CGP-Core\bin\Debug\CGP-Core.dll
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\CGP-Core\bin\Debug\CGP-Core.pdb
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\CGP-Core\obj\Debug\CGP-Core.csproj.AssemblyReference.cache
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\CGP-Core\obj\Debug\CGP-Core.csproj.CoreCompileInputs.cache
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\CGP-Core\obj\Debug\CGP-Core.dll
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\CGP-Core\obj\Debug\CGP-Core.pdb

@@ -1,0 +1,11 @@
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\cgp\bin\Debug\cgp.exe.config
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\cgp\bin\Debug\cgp.exe
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\cgp\bin\Debug\cgp.pdb
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\cgp\bin\Debug\CGP-Core.dll
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\cgp\bin\Debug\CGP-Core.pdb
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\cgp\obj\Debug\cgp.csproj.AssemblyReference.cache
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\cgp\obj\Debug\cgp.csproj.SuggestedBindingRedirects.cache
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\cgp\obj\Debug\cgp.csproj.CoreCompileInputs.cache
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\cgp\obj\Debug\cgp.csproj.CopyComplete
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\cgp\obj\Debug\cgp.exe
+C:\Users\samst\OneDrive\Documents\CGP\CGP\CGP-Core\cgp\obj\Debug\cgp.pdb
