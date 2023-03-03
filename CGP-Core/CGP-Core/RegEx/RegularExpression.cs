@@ -25,7 +25,7 @@ namespace CGP.RegEx
     /// - A regular expression in Parentheses, "(" and ")" indicating grouping.
     /// - A regular expression followed by * to indicate zero or more occurences.
     /// </summary>
-    public class RegularExpression
+    public sealed class RegularExpression
     {
         /// <summary>
         /// The access key for this regular expression.

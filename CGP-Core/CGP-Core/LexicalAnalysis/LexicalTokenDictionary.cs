@@ -16,7 +16,7 @@ namespace CGP.LexicalAnalysis
     /// 
     /// All 
     /// </summary>
-    public class LexicalTokenDictionary
+    public sealed class LexicalTokenDictionary
     {
         /// <summary>
         /// A dictionary linking a sequence of integer codes to a lexical token.
@@ -30,6 +30,21 @@ namespace CGP.LexicalAnalysis
         /// A linked list in sorted order of largest tokens to smallest tokens.
         /// </summary>
         private LinkedList<LexicalToken> Tokens = new LinkedList<LexicalToken>();
+        /// <summary>
+        /// Specifies whether to keep whitespace tokens when scanning for a lexical token sequence.
+        /// Used in LexicalSequence.CreateFrom(..);
+        /// </summary>
+        public bool KeepWhitespaceTokens = false;
+        /// <summary>
+        /// Specifies whether to keep tab tokens when scanning for a lexical token sequence.
+        /// Used in LexicalSequence.CreateFrom(..);
+        /// </summary>
+        public bool KeepTabTokens = false;
+        /// <summary>
+        /// Specifies whether to keep newline tokens when scanning for a lexical token sequence.
+        /// Used in LexicalSequence.CreateFrom(..);
+        /// </summary>
+        public bool KeepNewlineTokens = false;
 
         /// <summary>
         /// Gets a lexical token to this dictionary.
@@ -75,10 +90,11 @@ namespace CGP.LexicalAnalysis
         public void Add(LexicalToken token)
         {
             /* Pre-liminary check for existing codes or characters */
-            if(CodeDictionary.ContainsKey(token.Code))
-            {
-                throw new Exception("Dictionary already contains token");
-            }
+            token.Code = (short)CodeDictionary.Count;
+            //if (CodeDictionary.ContainsKey(token.Code))
+            //{
+            //    throw new Exception("Dictionary already contains token");
+            //}
             if (KeyDictionary.ContainsKey(token.Key))
             {
                 throw new Exception("Dictionary already contains token");
@@ -144,6 +160,126 @@ namespace CGP.LexicalAnalysis
             {
                 token.Expression.Link(GetExpression);
             }
+        }
+
+        /// <summary>
+        /// An global token specified for scans representing whitespace characters.
+        /// </summary>
+        public static LexicalToken WhitespaceToken { get; private set; }
+            = new LexicalToken("WHITESPACE", null, -1);
+
+        /// <summary>
+        /// An global token specified for scans representing tab characters.
+        /// </summary>
+        public static LexicalToken TabToken { get; private set; }
+            = new LexicalToken("TAB", null, -2);
+
+        /// <summary>
+        /// An global token specified for scans representing newlines (\r\n, \r \n).
+        /// </summary>
+        public static LexicalToken NewlineToken { get; private set; }
+            = new LexicalToken("NEWLINE", null, -3);
+
+        /// <summary>
+        /// An global token specified for scans representing unscannable strings.
+        /// </summary>
+        public static LexicalToken ReservedToken { get; private set; }
+            = new LexicalToken("RESERVED", null, -4);
+
+
+        /// <summary>
+        /// Scans the next suitable token from the start index.
+        /// 
+        /// Follows the following rules:
+        /// 1. Scans for the token which includes the most characters (longest string).
+        /// 2. If the scan length is equal, always chooses the earliest added token to base the scan from.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="startIndex"></param>
+        /// <returns>a tuple of the next search (start) index and the scanned token</returns>
+        public (int from, int next, LexicalToken token) ScanNext(string text, int startIndex)
+        {
+            while (startIndex < text.Length)
+            {
+                char startChar = text[startIndex];
+
+                if (KeepTabTokens)
+                {
+                    if (startChar == '\t')
+                    {
+                        return (startIndex, startIndex + 1, TabToken);
+                    }
+                }
+                else
+                {
+                    if (startChar == '\t')
+                    {
+                        startIndex++;
+                        continue;
+                    }
+                }
+                if (KeepNewlineTokens)
+                {
+                    if (startChar == '\r')
+                    {
+                        if (startIndex + 1 < text.Length)
+                        {
+                            if (text[startIndex + 1] == '\n')
+                                return (startIndex, startIndex + 2, NewlineToken);
+                        }
+                        return (startIndex, startIndex + 1, NewlineToken);
+                    }
+                    else if (startChar == '\n')
+                    {
+                        return (startIndex, startIndex + 1, NewlineToken);
+                    }
+                }
+                else
+                {
+                    if (startChar=='\r' || startChar=='\n')
+                    {
+                        startIndex++;
+                        continue;
+                    }
+                }
+                if (KeepWhitespaceTokens)
+                {
+                    if (char.IsWhiteSpace(startChar))
+                    {
+                        return (startIndex, startIndex + 1, WhitespaceToken);
+                    }
+                }
+                else
+                {
+                    if(char.IsWhiteSpace(startChar))
+                    {
+                        startIndex++;
+                        continue;
+                    }
+                }
+                break;
+            }
+            if(startIndex >= text.Length)
+            {
+                return (-2, -2, ReservedToken);
+            }
+
+            LexicalToken captureToken = ReservedToken;
+            int captureLength = -1;
+            foreach(LexicalToken token in Tokens)
+            {
+                int capture = token.Expression.Capture(text, startIndex, text.Length);
+                if(capture != -1)
+                {
+                    int length = capture - startIndex;
+                    if(captureLength < length)
+                    {
+                        captureToken = token;
+                        captureLength = length;
+                    }
+                }
+            }
+            return (startIndex, captureLength == -1 ? -1 : startIndex + captureLength, captureToken);
         }
     }
 }

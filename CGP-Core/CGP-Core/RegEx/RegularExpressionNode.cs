@@ -10,7 +10,7 @@ namespace CGP.RegEx
     /// <summary>
     /// A regular expression node formed from a rule.
     /// </summary>
-    public class RegularExpressionNode
+    public sealed class RegularExpressionNode
     {
         /// <summary>
         /// Specifies whether this node takes zero or more occurences.

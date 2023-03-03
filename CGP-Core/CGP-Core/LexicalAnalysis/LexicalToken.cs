@@ -26,8 +26,14 @@ namespace CGP.LexicalAnalysis
         /// <summary>
         /// The code of the token.
         /// A lexical token sequence can be exported using this byte code to shorten the file length.
+        /// By default, when adding into a dictionary this will be the index of the token.
         /// </summary>
         public short Code;
+        /// <summary>
+        /// If true, then in a scan will regard all captured characters.
+        /// Otherwise, keeps the captured string in the scan.
+        /// </summary>
+        public bool GenericCapture;
         /// <summary>
         /// Constructs a lexical token from the given regular expression, key, and code.
         /// </summary>
@@ -39,6 +45,7 @@ namespace CGP.LexicalAnalysis
             Key = key;
             Expression = expression;
             Code = code;
+            GenericCapture = true;
         }
         /// <summary>
         /// Constructs a lexical token from the given regular expression and code, using the key of the expression.
