@@ -10,7 +10,7 @@ namespace CGP.LexicalAnalysis
     /// <summary>
     /// A lexical token as defined by:
     /// KW_IF -> "if"
-    /// 
+    /// or !KW_IF -> "if" if the scanned strings should be kept.
     /// Each lexical token represents a code that is used to serialize the lexical dictionary.
     /// </summary>
     public struct LexicalToken
@@ -35,6 +35,18 @@ namespace CGP.LexicalAnalysis
         /// </summary>
         public bool GenericCapture;
         /// <summary>
+        /// Constructs a lexical token from the given regular expression, key.
+        /// </summary>
+        /// <param name="key">the key of the token</param>
+        /// <param name="expression">the string-capturing regular expression for this token</param>
+        public LexicalToken(string key, RegularExpression expression)
+        {
+            Key = key;
+            Expression = expression;
+            Code = 0;
+            GenericCapture = true;
+        }
+        /// <summary>
         /// Constructs a lexical token from the given regular expression, key, and code.
         /// </summary>
         /// <param name="key">the key of the token</param>
@@ -48,10 +60,48 @@ namespace CGP.LexicalAnalysis
             GenericCapture = true;
         }
         /// <summary>
+        /// Constructs a lexical token from the given regular expression and key.
+        /// </summary>
+        /// <param name="key">the key of the token</param>
+        /// <param name="expression">the string-capturing regular expression for this token</param>
+        /// <param name="code">the code of the token</param>
+        public LexicalToken(string key, string expression)
+        {
+            Key = key;
+            Expression = new RegularExpression(key, expression);
+            Code = 0;
+            GenericCapture = true;
+        }
+        /// <summary>
+        /// Constructs a lexical token from the given regular expression, key, and code.
+        /// </summary>
+        /// <param name="key">the key of the token</param>
+        /// <param name="expression">the string-capturing regular expression for this token</param>
+        /// <param name="code">the code of the token</param>
+        public LexicalToken(string key, string expression, short code)
+        {
+            Key = key;
+            Expression = new RegularExpression(key, expression);
+            Code = code;
+            GenericCapture = true;
+        }
+        /// <summary>
         /// Constructs a lexical token from the given regular expression and code, using the key of the expression.
         /// </summary>
         /// <param name="expression">the string-capturing regular expression for this token</param>
         /// <param name="code">the code of the token</param>
         public LexicalToken(RegularExpression expression, short code) : this(expression.Key, expression, code) { }
+
+        /// <summary>
+        /// Constructs a lexical token from the key, and code. 
+        /// The expression is left null (i.e. no scanning for this token is supported)
+        /// </summary>
+        /// <param name="key">the key of the token</param>
+        /// <param name="expression">the string-capturing regular expression for this token</param>
+        /// <param name="code">the code of the token</param>
+        public static LexicalToken CreateEmpty(string key, short code)
+        {
+            return new LexicalToken(key, (RegularExpression)null, code);
+        }
     }
 }

@@ -42,7 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LexicalAnalysis\LexicalScanToken.cs" />
-    <Compile Include="LexicalAnalysis\LexicalSequence.cs" />
+    <Compile Include="LexicalAnalysis\ScannedTokenSequence.cs" />
     <Compile Include="LexicalAnalysis\LexicalTokenDictionary.cs" />
     <Compile Include="LexicalAnalysis\LexicalToken.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

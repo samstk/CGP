@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace CGP.LexicalAnalysis
 {
     /// <summary>
-    /// A lexical sequence consisting of a number of lexical tokens.
+    /// A sequence consisting of a number of scanned lexical tokens.
     /// </summary>
-    public sealed class LexicalSequence
+    public sealed class ScannedTokenSequence
     {
         /// <summary>
         /// The dictionary in which this sequence was formed from.
@@ -19,13 +19,13 @@ namespace CGP.LexicalAnalysis
         /// <summary>
         /// A list of tokens in sequence.
         /// </summary>
-        public LinkedList<LexicalScanToken> SequenceTokens = new LinkedList<LexicalScanToken>();
+        public LinkedList<LexicalScanToken> SequenceTokens { get; private set; } = new LinkedList<LexicalScanToken>();
 
         /// <summary>
         /// Constructs the lexical sequence using the base dictionary.
         /// </summary>
         /// <param name="baseDictionary"></param>
-        public LexicalSequence(LexicalTokenDictionary baseDictionary)
+        public ScannedTokenSequence(LexicalTokenDictionary baseDictionary)
         {
             BaseDictionary = baseDictionary;
         }
@@ -58,9 +58,9 @@ namespace CGP.LexicalAnalysis
         /// <param name="tokenDictionary">the dictionary in which all tokens are defined</param>
         /// <param name="text">the text to scan.</param>
         /// <returns></returns>
-        public static LexicalSequence CreateFrom(LexicalTokenDictionary tokenDictionary, string text)
+        public static ScannedTokenSequence CreateFrom(LexicalTokenDictionary tokenDictionary, string text)
         {
-            LexicalSequence seq = new LexicalSequence(tokenDictionary);
+            ScannedTokenSequence seq = new ScannedTokenSequence(tokenDictionary);
             int captureIndex = 0;
 
             while (captureIndex < text.Length)

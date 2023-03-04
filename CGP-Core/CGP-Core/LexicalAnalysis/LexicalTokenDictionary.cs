@@ -166,25 +166,25 @@ namespace CGP.LexicalAnalysis
         /// An global token specified for scans representing whitespace characters.
         /// </summary>
         public static LexicalToken WhitespaceToken { get; private set; }
-            = new LexicalToken("WHITESPACE", null, -1);
+            = LexicalToken.CreateEmpty("WHITESPACE", -1);
 
         /// <summary>
         /// An global token specified for scans representing tab characters.
         /// </summary>
         public static LexicalToken TabToken { get; private set; }
-            = new LexicalToken("TAB", null, -2);
+            = LexicalToken.CreateEmpty("TAB", -2);
 
         /// <summary>
         /// An global token specified for scans representing newlines (\r\n, \r \n).
         /// </summary>
         public static LexicalToken NewlineToken { get; private set; }
-            = new LexicalToken("NEWLINE", null, -3);
+            = LexicalToken.CreateEmpty("NEWLINE", -3);
 
         /// <summary>
         /// An global token specified for scans representing unscannable strings.
         /// </summary>
         public static LexicalToken ReservedToken { get; private set; }
-            = new LexicalToken("RESERVED", null, -4);
+            = LexicalToken.CreateEmpty("RESERVED", -4);
 
 
         /// <summary>
@@ -280,6 +280,16 @@ namespace CGP.LexicalAnalysis
                 }
             }
             return (startIndex, captureLength == -1 ? -1 : startIndex + captureLength, captureToken);
+        }
+
+        /// <summary>
+        /// Analyses the following text by scanning all available tokens from this dictionary.
+        /// </summary>
+        /// <param name="text">the text to scan.</param>
+        /// <returns></returns>
+        public ScannedTokenSequence Analysis(string text)
+        {
+            return ScannedTokenSequence.CreateFrom(this, text);
         }
     }
 }
