@@ -92,6 +92,10 @@ namespace CGP.LexicalAnalysis
                 {
                     throw new Exception("Unable to find scannable token.");
                 }
+                else if (token.Code == -5)
+                {
+                    break;
+                }
                 else
                 {
                     seq.Append(token, token.GenericCapture ? null : text.Substring(captureIndex, next - captureIndex));

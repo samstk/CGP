@@ -138,7 +138,29 @@ namespace CGP.LexicalAnalysis
         /// </summary>
         public void Import(string[] lines)
         {
-            throw new Exception("Not implemented.");
+            foreach(string line in lines)
+            {
+                string l = line.Trim();
+                if (l.Length == 0) { continue; }
+                bool generic = true;
+                if (l.StartsWith("!"))
+                {
+                    generic = false;
+                    l = l.Remove(0, 1).Trim();
+                }
+                int indexOfSplitter = l.IndexOf("->");
+                if(indexOfSplitter==-1)
+                {
+                    throw new Exception("Incorrect splitter used (->) at " + line);
+                }
+                string key = l.Substring(0, indexOfSplitter).Trim();
+                if(key.Contains(" "))
+                {
+                    throw new Exception("Token Keys cannot be multi-word");
+                }
+                string rule = l.Substring(indexOfSplitter + 2).Trim();
+                Add(new LexicalToken(key, rule) { GenericCapture = generic });
+            }
         }
 
         /// <summary>
@@ -186,6 +208,11 @@ namespace CGP.LexicalAnalysis
         public static LexicalToken ReservedToken { get; private set; }
             = LexicalToken.CreateEmpty("RESERVED", -4);
 
+        /// <summary>
+        /// An global token specified for scans representing finished scans.
+        /// </summary>
+        public static LexicalToken FinishedToken { get; private set; }
+            = LexicalToken.CreateEmpty("FINISHED", -5);
 
         /// <summary>
         /// Scans the next suitable token from the start index.
@@ -261,7 +288,7 @@ namespace CGP.LexicalAnalysis
             }
             if(startIndex >= text.Length)
             {
-                return (-2, -2, ReservedToken);
+                return (-2, -2, FinishedToken);
             }
 
             LexicalToken captureToken = ReservedToken;

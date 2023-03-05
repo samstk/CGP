@@ -51,7 +51,7 @@ namespace CGP.LexicalAnalysis
         /// </summary>
         /// <param name="key">the key of the token</param>
         /// <param name="expression">the string-capturing regular expression for this token</param>
-        /// <param name="code">the code of the token</param>
+        /// <param name="code">the code of the token (must be positive)</param>
         public LexicalToken(string key, RegularExpression expression, short code)
         {
             Key = key;
@@ -59,12 +59,13 @@ namespace CGP.LexicalAnalysis
             Code = code;
             GenericCapture = true;
         }
+
         /// <summary>
         /// Constructs a lexical token from the given regular expression and key.
         /// </summary>
         /// <param name="key">the key of the token</param>
         /// <param name="expression">the string-capturing regular expression for this token</param>
-        /// <param name="code">the code of the token</param>
+        /// <param name="code">the code of the token (must be positive)</param>
         public LexicalToken(string key, string expression)
         {
             Key = key;
@@ -77,7 +78,7 @@ namespace CGP.LexicalAnalysis
         /// </summary>
         /// <param name="key">the key of the token</param>
         /// <param name="expression">the string-capturing regular expression for this token</param>
-        /// <param name="code">the code of the token</param>
+        /// <param name="code">the code of the token (must be positive)</param>
         public LexicalToken(string key, string expression, short code)
         {
             Key = key;
@@ -89,7 +90,7 @@ namespace CGP.LexicalAnalysis
         /// Constructs a lexical token from the given regular expression and code, using the key of the expression.
         /// </summary>
         /// <param name="expression">the string-capturing regular expression for this token</param>
-        /// <param name="code">the code of the token</param>
+        /// <param name="code">the code of the token (must be positive)</param>
         public LexicalToken(RegularExpression expression, short code) : this(expression.Key, expression, code) { }
 
         /// <summary>
@@ -98,7 +99,7 @@ namespace CGP.LexicalAnalysis
         /// </summary>
         /// <param name="key">the key of the token</param>
         /// <param name="expression">the string-capturing regular expression for this token</param>
-        /// <param name="code">the code of the token</param>
+        /// <param name="code">the code of the token (must be positive)</param>
         public static LexicalToken CreateEmpty(string key, short code)
         {
             return new LexicalToken(key, (RegularExpression)null, code);
