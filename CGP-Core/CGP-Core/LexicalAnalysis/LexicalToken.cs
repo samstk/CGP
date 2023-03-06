@@ -8,6 +8,14 @@ using System.Threading.Tasks;
 namespace CGP.LexicalAnalysis
 {
     /// <summary>
+    /// A custom scan function for in-built token capturing conditions.
+    /// </summary>
+    /// <param name="text">the text to scan</param>
+    /// <param name="start">the start point</param>
+    /// <param name="end">the text length</param>
+    /// <returns></returns>
+    public delegate int ScanFunction(string text, int start, int end);
+    /// <summary>
     /// A lexical token as defined by:
     /// KW_IF -> "if"
     /// or !KW_IF -> "if" if the scanned strings should be kept.
@@ -23,6 +31,12 @@ namespace CGP.LexicalAnalysis
         /// The regular expression that represents how this token is formed using a string.
         /// </summary>
         public RegularExpression Expression;
+
+        /// <summary>
+        /// The custom scan function that if the expression is null, uses this to capture the string.
+        /// </summary>
+        public ScanFunction ScanFunction;
+
         /// <summary>
         /// The code of the token.
         /// A lexical token sequence can be exported using this byte code to shorten the file length.
@@ -34,6 +48,7 @@ namespace CGP.LexicalAnalysis
         /// Otherwise, keeps the captured string in the scan.
         /// </summary>
         public bool GenericCapture;
+
         /// <summary>
         /// Constructs a lexical token from the given regular expression, key.
         /// </summary>
@@ -45,6 +60,7 @@ namespace CGP.LexicalAnalysis
             Expression = expression;
             Code = 0;
             GenericCapture = true;
+            ScanFunction = null;
         }
         /// <summary>
         /// Constructs a lexical token from the given regular expression, key, and code.
@@ -58,6 +74,7 @@ namespace CGP.LexicalAnalysis
             Expression = expression;
             Code = code;
             GenericCapture = true;
+            ScanFunction = null;
         }
 
         /// <summary>
@@ -72,6 +89,7 @@ namespace CGP.LexicalAnalysis
             Expression = new RegularExpression(key, expression);
             Code = 0;
             GenericCapture = true;
+            ScanFunction = null;
         }
         /// <summary>
         /// Constructs a lexical token from the given regular expression, key, and code.
@@ -85,6 +103,7 @@ namespace CGP.LexicalAnalysis
             Expression = new RegularExpression(key, expression);
             Code = code;
             GenericCapture = true;
+            ScanFunction = null;
         }
         /// <summary>
         /// Constructs a lexical token from the given regular expression and code, using the key of the expression.
@@ -103,6 +122,13 @@ namespace CGP.LexicalAnalysis
         public static LexicalToken CreateEmpty(string key, short code)
         {
             return new LexicalToken(key, (RegularExpression)null, code);
+        }
+
+        public static LexicalToken CreateInternal(string key, short code, ScanFunction scanFunction)
+        {
+            LexicalToken token = CreateEmpty(key, code);
+            token.ScanFunction = scanFunction;
+            return token;
         }
     }
 }

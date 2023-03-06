@@ -14,7 +14,8 @@ namespace CGP.LexicalAnalysis
     /// A dictionary containing a list of lexical tokens for further parsing.
     /// A lexical token can have a maximum character length of 255.
     /// 
-    /// All 
+    /// No lexical token regular expression should contain the optional square brackets
+    /// due to incompatibility with whitespace trimming - to be done in concrete syntax tree generation.
     /// </summary>
     public sealed class LexicalTokenDictionary
     {
@@ -30,6 +31,11 @@ namespace CGP.LexicalAnalysis
         /// A linked list in sorted order of largest tokens to smallest tokens.
         /// </summary>
         private LinkedList<LexicalToken> Tokens = new LinkedList<LexicalToken>();
+
+        /// <summary>
+        /// A dictionary linking a sequence of keys to an internal special token (such as Alpha, Digit, Alphanumerical)
+        /// </summary>
+        private Dictionary<string, LexicalToken> InternalKeyDictionary = new Dictionary<string, LexicalToken>();
         /// <summary>
         /// Specifies whether to keep whitespace tokens when scanning for a lexical token sequence.
         /// Used in LexicalSequence.CreateFrom(..);
@@ -168,9 +174,16 @@ namespace CGP.LexicalAnalysis
         /// </summary>
         /// <param name="key">the key of the token</param>
         /// <returns></returns>
-        public RegularExpression GetExpression(string key)
+        public (RegularExpression, ScanFunction) GetExpression(string key)
         {
-            return this[key].Expression;
+            if(InternalKeyDictionary.ContainsKey(key))
+            {
+                LexicalToken itoken = InternalKeyDictionary[key];
+                return (itoken.Expression, itoken.ScanFunction);
+            }
+
+            LexicalToken token = this[key];
+            return (token.Expression, token.ScanFunction);
         }
 
         /// <summary>
@@ -180,7 +193,7 @@ namespace CGP.LexicalAnalysis
         {
             foreach(LexicalToken token in Tokens)
             {
-                token.Expression.Link(GetExpression);
+                token.Expression?.Link(GetExpression);
             }
         }
 
@@ -214,6 +227,55 @@ namespace CGP.LexicalAnalysis
         public static LexicalToken FinishedToken { get; private set; }
             = LexicalToken.CreateEmpty("FINISHED", -5);
 
+        /// <summary>
+        /// A token which is automatically added to the dictionary in the beginning.
+        /// </summary>
+        public static LexicalToken Digit { get; private set; }
+            = LexicalToken.CreateInternal("Digit", -6, (string text, int scanPoint, int end) =>
+            {
+                if(scanPoint < end)
+                {
+                    return char.IsDigit(text[scanPoint]) ? scanPoint + 1 : -1;
+                }
+                return -1;
+            });
+
+        /// <summary>
+        /// A token which is automatically added to the dictionary in the beginning.
+        /// </summary>
+        public static LexicalToken Alpha { get; private set; }
+            = LexicalToken.CreateInternal("Alpha", -7, (string text, int scanPoint, int end) =>
+            {
+                if (scanPoint < end)
+                {
+                    return char.IsLetter(text[scanPoint]) ? scanPoint + 1 : -1;
+                }
+                return -1;
+            });
+
+        /// <summary>
+        /// A token which is automatically added to the dictionary in the beginning.
+        /// </summary>
+        public static LexicalToken Alphanumerical { get; private set; }
+            = LexicalToken.CreateInternal("Alphanumerical", -7, (string text, int scanPoint, int end) =>
+            {
+                if (scanPoint < end)
+                {
+                    return char.IsLetterOrDigit(text[scanPoint]) ? scanPoint + 1 : -1;
+                }
+                return -1;
+            });
+
+        /// <summary>
+        /// Constructs a lexical token dictionary with the standard internal Digit, Alpha, Alphanumerical Tokens.
+        /// </summary>
+        public LexicalTokenDictionary()
+        {
+            InternalKeyDictionary.Add("Alpha", Alpha);
+            InternalKeyDictionary.Add("Digit", Digit);
+            InternalKeyDictionary.Add("Alphanumerical", Alphanumerical);
+
+        }
         /// <summary>
         /// Scans the next suitable token from the start index.
         /// 
@@ -295,11 +357,18 @@ namespace CGP.LexicalAnalysis
             int captureLength = -1;
             foreach(LexicalToken token in Tokens)
             {
-                int capture = token.Expression.Capture(text, startIndex, text.Length);
-                if(capture != -1)
+                int capture = -1;
+                if (token.Expression != null)
+                {
+                    capture = token.Expression.Capture(text, startIndex, text.Length);
+                } else if (token.ScanFunction != null)
+                {
+                    capture = token.ScanFunction(text, startIndex, text.Length);
+                }
+                if (capture != -1)
                 {
                     int length = capture - startIndex;
-                    if(captureLength < length)
+                    if (captureLength < length)
                     {
                         captureToken = token;
                         captureLength = length;

@@ -60,10 +60,16 @@ namespace cgp
                         mode = 3;
                         wildCard = arg;
                     }
+                    else
+                    {
+                        textFiles.Add(arg);
+                        mode = 0;
+                    }
                 }
                 else if (mode == 3)
                 {
                     textFiles.AddRange(Directory.GetFiles(arg, wildCard, SearchOption.AllDirectories));
+                    mode = 0;
                 }
                 else if (mode == 4)
                 {
@@ -76,9 +82,11 @@ namespace cgp
                 else if (mode == 5)
                 {
                     textFiles.AddRange(Directory.GetFiles(arg, wildCard, SearchOption.TopDirectoryOnly));
+                    mode = 0;
                 }
-                else
+                else if (mode == 6)
                 {
+                    mode = 0;
                     scanTexts.Add(arg);
                 }
             }

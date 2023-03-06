@@ -47,9 +47,10 @@ TOKEN_RULE adheres to the following rules for regular expressions:
 * a sequence of regular expressions representing their concatenation such as: RegExp1 RegExp2 RegExp3
 * a set of valid alternative regular expressions for this regular expression seperated by | such as: RegExp1 | RegExp2.
 * a regular expression in parentheses, "(" and ")" indicating grouping.
+* a regular expression in square brackets, "[" and "]" indicating optional capturing.
 * a regular expression followed by * to indicate zero or more occurences.
 
 ## Changelog
-* Added Token Expression File heading in README.md
-* Fix issues with end of string / end of file in ScanNext.
-* Added some argument support for cgp console (no outputs).
+* Fix some more issues regarding regular expression compiling.
+* Added optional support for regular expressions (syntax [ exp ])
+* Added in-built Digit, Alpha, and Alphanumerical Expressions that can be linked via the Token Dictionary.

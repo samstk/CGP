@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CGP.LexicalAnalysis;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Configuration;
@@ -14,8 +15,17 @@ namespace CGP.RegEx
     {
         /// <summary>
         /// Specifies whether this node takes zero or more occurences.
+        /// Not compatible with Optional.
         /// </summary>
         public bool ZeroOrMoreOccurences 
+        { get; private set; } = false;
+
+        /// <summary>
+        /// Specifies whether this node is optional.
+        /// i.e. Failure to capture this results in failure in the parent node.
+        /// Not compatible with ZeroOrMoreOccurences.
+        /// </summary>
+        public bool Optional
         { get; private set; } = false;
 
         /// <summary>
@@ -45,6 +55,11 @@ namespace CGP.RegEx
         /// </summary>
         public RegularExpression ReferenceExpression { get; private set; } = null;
 
+        /// <summary>
+        /// If ReferenceExpressionKey is set, and the expressions are linked, then this is a
+        /// reference to the custom scan function used for this node.
+        /// </summary>
+        public ScanFunction ReferenceScanFunction { get; private set; } = null;
 
         /// <summary>
         /// Adds a group to the sequence of the current node.
@@ -53,9 +68,9 @@ namespace CGP.RegEx
         /// <param name="baseExpression">The base expression of the node</param>
         /// <param name="rule">The rule of the group</param>
         /// <returns></returns>
-        private RegularExpressionNode AddGroupToSequence(RegularExpression baseExpression, string rule)
+        private RegularExpressionNode AddGroupToSequence(RegularExpression baseExpression, string rule, bool optionalGroupings=false)
         {
-            RegularExpressionNode node = new RegularExpressionNode(baseExpression, rule);
+            RegularExpressionNode node = new RegularExpressionNode(baseExpression, rule) { Optional = optionalGroupings};
             Sequence.AddLast(node);
             return node;
         }
@@ -100,13 +115,17 @@ namespace CGP.RegEx
         /// <param name="rule">a rule that follows the Regular Expression syntax as outlined in RegularExpression</param>
         public RegularExpressionNode(RegularExpression baseExpression, string rule)
         {
-            /* Split the rule into alternative groupings */
+            /* Split the rule into alternative groupings and check brackets */
             LinkedList<string> versions = new LinkedList<string>();
 
             bool hasAlternativeNodes = false;
             
             int mode = 0; // 0 = Continue, 1 = In String, 2 = In String (escape), 3+ = In String(escape \u0000)
-            int brackets = 0; // To avoid inner groups while splitting, only split when brackets=0
+            int brackets = 0; // To avoid inner groups while splitting, only split when brackets=0, sqbrackets=0
+            int nbrackets = 0; // If sqbrackets < nbrackets, then bracket balancing error has occured.
+            int sqnbrackets = 0; //If brackets < sqnbrackets, then bracket balancing error has occured.
+            int sqbrackets = 0; // To avoid inner groups while spitting, only split when brackets=0, sqbrackets=0
+
             string versionStringBuilder = "";
             for (int i = 0; i < rule.Length; i++) {
                 char c = rule[i];
@@ -117,7 +136,7 @@ namespace CGP.RegEx
                     {
                         mode = 1;
                     }
-                    else if(c=='|' && brackets == 0)
+                    else if(c=='|' && brackets == 0 && sqbrackets == 0)
                     {
                         addchar = false;
                         versions.AddLast(versionStringBuilder.Trim());
@@ -127,10 +146,30 @@ namespace CGP.RegEx
                     else if (c == '(')
                     {
                         brackets++;
+                        if (brackets == 1)
+                        {
+                            nbrackets = sqbrackets;
+                        }
                     }
                     else if (c == ')')
                     {
                         brackets--;
+                        if (brackets < 0 || nbrackets > sqbrackets)
+                            throw new Exception("Mismatched brackets");
+                    }
+                    else if (c == '[')
+                    {
+                        sqbrackets++;
+                        if (sqbrackets == 1)
+                        {
+                            sqnbrackets = brackets;
+                        }
+                    }
+                    else if (c == ']')
+                    {
+                        sqbrackets--;
+                        if (sqbrackets < 0 || sqnbrackets > brackets)
+                            throw new Exception("Mismatched square brackets");
                     }
                 }
                 else if (mode == 1)
@@ -185,7 +224,7 @@ namespace CGP.RegEx
                 string nodeBuilder = "";
                 mode = 0;
                 brackets = 0;
-
+                sqbrackets = 0;
                 for (int i = 0; i < rule.Length; i++)
                 {
                     char c = rule[i];
@@ -194,20 +233,25 @@ namespace CGP.RegEx
                     {
                         if (char.IsWhiteSpace(c) || c == '*')
                         {
-                            nodeBuilder = nodeBuilder.Trim();
-                            if (nodeBuilder.Length > 0)
+                            if (brackets == 0 && sqbrackets == 0)
                             {
-                                lastSequenceNode = AddTokenToSequence(baseExpression, nodeBuilder);
-                                nodeBuilder = "";
-                            }
-                            if (c == '*')
-                            {
-                                addchar = false;
-                                if (lastSequenceNode == null)
+                                nodeBuilder = nodeBuilder.Trim();
+                                if (nodeBuilder.Length > 0)
                                 {
-                                    throw new Exception("'*' operator is not placed after group or token.");
+                                    lastSequenceNode = AddTokenToSequence(baseExpression, nodeBuilder);
+                                    nodeBuilder = "";
                                 }
-                                lastSequenceNode.ZeroOrMoreOccurences = true;
+                                if (c == '*')
+                                {
+                                    addchar = false;
+                                    if (lastSequenceNode == null)
+                                    {
+                                        throw new Exception("'*' operator is not placed after group or token.");
+                                    }
+                                    if (lastSequenceNode.Optional)
+                                        throw new Exception("'*' operator is not valid on optional groups (indicating zero or one occurences)");
+                                    lastSequenceNode.ZeroOrMoreOccurences = true;
+                                }
                             }
                         }
                         else if (c == '\"')
@@ -240,15 +284,43 @@ namespace CGP.RegEx
                                 nodeBuilder = "";
                             }
                         }
+                        else if (c == '[')
+                        {
+                            if (sqbrackets == 0)
+                            {
+                                nodeBuilder = nodeBuilder.Trim();
+                                if (nodeBuilder.Length > 0)
+                                {
+                                    lastSequenceNode = AddTokenToSequence(baseExpression, nodeBuilder.Trim());
+                                    nodeBuilder = "";
+                                }
+                                addchar = false;
+                            }
+                            sqbrackets++;
+                        }
+                        else if (c == ']')
+                        {
+                            sqbrackets--;
+                            if (sqbrackets == 0)
+                            {
+                                addchar = false;
+                                nodeBuilder = nodeBuilder.Trim();
+                                lastSequenceNode = AddGroupToSequence(baseExpression, nodeBuilder.Trim(), true);
+                                nodeBuilder = "";
+                            }
+                        }
                     }
                     else if (mode == 1)
                     {
                         if (c == '\"')
                         {
                             mode = 0;
-                            lastSequenceNode = AddTokenToSequence(baseExpression, nodeBuilder.Trim());
-                            nodeBuilder = "";
-                            addchar = false;
+                            if (brackets == 0 && sqbrackets == 0)
+                            {
+                                lastSequenceNode = AddTokenToSequence(baseExpression, nodeBuilder.Trim());
+                                nodeBuilder = "";
+                                addchar = false;
+                            }
                         }
                         else if (c == '\\')
                         {
@@ -300,7 +372,7 @@ namespace CGP.RegEx
                 node.Link(linkingFunction);
 
             if (ReferenceExpressionKey != null)
-                ReferenceExpression = linkingFunction(ReferenceExpressionKey);
+                (ReferenceExpression, ReferenceScanFunction) = linkingFunction(ReferenceExpressionKey);
         }
 
         /// <summary>
@@ -345,6 +417,8 @@ namespace CGP.RegEx
             }
             if(ReferenceExpressionKey != null)
             {
+                if (ReferenceScanFunction != null)
+                    return ReferenceScanFunction(text, start, end);
                 if (ReferenceExpression == null)
                     throw new Exception("Expression requires linking");
                 return ReferenceExpression.Capture(text, start, end);
@@ -369,7 +443,7 @@ namespace CGP.RegEx
                     int cap = node.Capture(text, startPoint, end);
                     if (cap == -1)
                     {
-                        if (node.ZeroOrMoreOccurences)
+                        if (node.ZeroOrMoreOccurences || node.Optional)
                             continue;
                         else
                         {

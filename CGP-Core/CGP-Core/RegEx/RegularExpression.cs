@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CGP.LexicalAnalysis;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,7 @@ namespace CGP.RegEx
     /// </summary>
     /// <param name="key">The key of the regular expression.</param>
     /// <returns>A regular expression of that key.</returns>
-    public delegate RegularExpression RegularExpressionLinkDelegate(string key);
+    public delegate (RegularExpression, ScanFunction) RegularExpressionLinkDelegate(string key);
 
     /// <summary>
     /// A regular expression defined by (Key -> Rules)        
@@ -23,6 +24,7 @@ namespace CGP.RegEx
     /// - a sequence of regular expressions representing their concatenation such as: RegExp1 RegExp2 RegExp3
     /// - a set of valid alternative regular expressions for this regular expression seperated by | such as: RegExp1 | RegExp2.
     /// - A regular expression in Parentheses, "(" and ")" indicating grouping.
+    /// - A regular expression in Square Brackets, "[" and "]" indicating optional grouping.
     /// - A regular expression followed by * to indicate zero or more occurences.
     /// </summary>
     public sealed class RegularExpression
@@ -45,6 +47,7 @@ namespace CGP.RegEx
         /// - a sequence of regular expressions representing their concatenation such as: RegExp1 RegExp2 RegExp3
         /// - a set of valid alternative regular expressions for this regular expression seperated by | such as: RegExp1 | RegExp2.
         /// - A regular expression in Parentheses, "(" and ")" indicating grouping.
+        /// - A regular expression in Square Brackets, "[" and "]" indicating optional grouping.
         /// - A regular expression followed by * to indicate zero or more occurences.
         /// 
         /// External regular expressions can be created, however every regular expression must be linked using the Link function.
